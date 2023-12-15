@@ -1,0 +1,196 @@
+Develop a Simple Room Reservation System Application Using EJB
+
+ Room Entity (Room.java):
+java
+Copy code
+import java.io.Serializable;
+
+public class Room implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private int roomId;
+    private String roomName;
+    private boolean isReserved;
+
+    // Constructors, getters, and setters
+}
+2. Stateless Session Bean (ReservationBean.java):
+java
+Copy code
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.Stateless;
+
+@Stateless
+public class ReservationBean {
+
+    private List<Room> rooms;
+
+    public ReservationBean() {
+        // Initialize rooms (replace with database interaction in a real application)
+        rooms = new ArrayList<>();
+        rooms.add(new Room(1, "Room A", false));
+        rooms.add(new Room(2, "Room B", false));
+        rooms.add(new Room(3, "Room C", false));
+    }
+
+    public List<Room> getAllRooms() {
+        return rooms;
+    }
+
+    public Room getRoomById(int roomId) {
+        for (Room room : rooms) {
+            if (room.getRoomId() == roomId) {
+                return room;
+            }
+        }
+        return null;
+    }
+
+    public boolean reserveRoom(int roomId) {
+        Room room = getRoomById(roomId);
+        if (room != null && !room.isReserved()) {
+            room.setReserved(true);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean cancelReservation(int roomId) {
+        Room room = getRoomById(roomId);
+        if (room != null && room.isReserved()) {
+            room.setReserved(false);
+            return true;
+        }
+        return false;
+    }
+}
+3. Servlet (ReservationServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ReservationServlet")
+public class ReservationServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    @EJB
+    private ReservationBean reservationBean;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Display available rooms
+        List<Room> rooms = reservationBean.getAllRooms();
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        out.println("<html><head><title>Room Reservation System</title></head><body>");
+        out.println("<h2>Available Rooms</h2>");
+
+        for (Room room : rooms) {
+            out.println("<p>" + room.getRoomName() + " - " + 
+                        (room.isReserved() ? "Reserved" : "Available") + 
+                        " <a href='ReserveRoom?id=" + room.getRoomId() + "'>Reserve</a></p>");
+        }
+
+        out.println("</body></html>");
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Process room reservation or cancellation
+        String action = request.getParameter("action");
+        int roomId = Integer.parseInt(request.getParameter("roomId"));
+
+        boolean success = false;
+        if ("reserve".equals(action)) {
+            success = reservationBean.reserveRoom(roomId);
+        } else if ("cancel".equals(action)) {
+            success = reservationBean.cancelReservation(roomId);
+        }
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        out.println("<html><head><title>Reservation Status</title></head><body>");
+        
+        if (success) {
+            out.println("<h2>Reservation Successful</h2>");
+        } else {
+            out.println("<h2>Reservation Failed</h2>");
+        }
+
+        out.println("<a href='ReservationServlet'>Back to Rooms</a>");
+        out.println("</body></html>");
+    }
+}
+Deployment:
+
+=========================
+
+Develop Servlet Application of Basic Calculator (+,-,*, /, %) using
+ServletInputStream and ServletOutputStream.
+CREATE A SIMPLE CALCULATOR APPLICATION USING SERVLET.
+HTML CODE: index.html
+<html>
+    <head>
+        <title>Calculator</title>
+    </head>
+    <body align="justify">
+<form action="Calculate" >
+ Enter First Number <input type="text" name="tn1" ><br>
+ Enter Second Number <input type="text" name="tn2" ><br>
+ Select an Operation<br>
+ <input type="radio" name="opr" value="+">ADDITION<br>
+ <input type="radio" name="opr" value="-">SUBTRACTION<br>
+ <input type="radio" name="opr" value="*">MULTIPLY<br>
+<input type="radio" name="opr" value="/">DIVIDE <br>
+<input type="reset"><br>
+<input type="submit" value="Calculate" >
+</form>
+    </body>
+</html>
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+SERVLET CODE:  Calculate.java
+
+package mypack;
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.*;
+public class Calculate extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            out.println("<html><head><title>Calculator</title></head><center><body>");
+            double n1 = Double.parseDouble(request.getParameter("tn1"));
+            double n2 = Double.parseDouble(request.getParameter("tn2"));
+            double result = 0;
+            String opr = request.getParameter("opr");
+            if(opr.equals("+"))
+                result = n1 + n2;
+            if(opr.equals("-"))
+                result = n1 - n2;
+            if(opr.equals("*"))
+                result = n1 * n2;
+            if(opr.equals("/"))
+                result = n1 / n2;
+            out.println("<h1 aligh=centerf> Answer "+result);
+            out.println("</center></body></html>");     
+        }
+    }}
+OUTPUT:

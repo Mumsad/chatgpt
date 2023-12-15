@@ -1,0 +1,98 @@
+Create a servlet for a login page. If the username and password are correct then
+it says message “Hello <username>” else a message “login failed”
+
+login.html:
+
+html
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+</head>
+<body>
+    <form action="LoginServlet" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>
+LoginServlet.java:
+
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/LoginServlet")
+public class LoginServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        // Retrieve user input
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        // In a real-world scenario, validate against a database
+        // For simplicity, using hardcoded values
+        String correctUsername = "admin";
+        String correctPassword = "password";
+
+        // Set content type to HTML
+        response.setContentType("text/html");
+
+        // Get PrintWriter object
+        PrintWriter out = response.getWriter();
+
+        // Check if the provided credentials are correct
+        if (correctUsername.equals(username) && correctPassword.equals(password)) {
+            // Successful login
+            out.println("<html><body>");
+            out.println("<h2>Hello " + username + "</h2>");
+            out.println("</body></html>");
+        } else {
+            // Failed login
+            out.println("<html><body>");
+            out.println("<h2>Login failed</h2>");
+            out.println("</body></html>");
+        }
+    }
+}
+
+
+ Develop a simple JSP application to display values obtained from the use of
+implicit objects of various types.
+
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Implicit Objects Example</title>
+</head>
+<body>
+    <h1>Implicit Objects Example</h1>
+
+    <p>Request Parameter (user): <%= request.getParameter("user") %></p>
+    
+    <p>Context Parameter (siteName): <%= application.getInitParameter("siteName") %></p>
+
+    <p>Session Attribute (loggedInUser): <%= session.getAttribute("loggedInUser") %></p>
+
+    <p>Page Attribute (pageTitle): <%= pageContext.getAttribute("pageTitle") %></p>
+
+    <p>Request Attribute (message): <%= request.getAttribute("message") %></p>
+
+    <p>Out Implicit Object (response.getWriter()): <%= out.getClass().getName() %></p>
+
+</body>
+</html>

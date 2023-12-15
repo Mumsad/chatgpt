@@ -1,0 +1,270 @@
+Create a registration servlet in Java using JDBC. Accept the details such as
+Username, Password, Email, and Country from the user using HTML Form and
+store the registration details in the database.
+
+
+Step 1: Set up your Database
+Create a database and a table to store user registration details. Here's an example SQL script:
+
+sql
+Copy code
+CREATE DATABASE IF NOT EXISTS mydb;
+
+USE mydb;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(50) NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    country VARCHAR(50) NOT NULL
+);
+Step 2: Create a Registration Servlet
+Create a Java servlet to handle the user registration and interact with the database. Let's call it RegistrationServlet.java.
+
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/RegistrationServlet")
+public class RegistrationServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    // JDBC database URL, username, and password of MySQL server
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/mydb";
+    private static final String JDBC_USER = "your_username";
+    private static final String JDBC_PASSWORD = "your_password";
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Retrieve user input
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String email = request.getParameter("email");
+        String country = request.getParameter("country");
+
+        // JDBC variables
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Establish a connection
+            connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+
+            // Create a prepared statement with SQL
+            String sql = "INSERT INTO users (username, password, email, country) VALUES (?, ?, ?, ?)";
+            preparedStatement = connection.prepareStatement(sql);
+
+            // Set parameters for the prepared statement
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, password);
+            preparedStatement.setString(3, email);
+            preparedStatement.setString(4, country);
+
+            // Execute the query
+            int rowsInserted = preparedStatement.executeUpdate();
+
+            // Check if the registration was successful
+            if (rowsInserted > 0) {
+                response.setContentType("text/html");
+                PrintWriter out = response.getWriter();
+                out.println("<html><body>");
+                out.println("<h2>Registration successful</h2>");
+                out.println("</body></html>");
+            } else {
+                response.setContentType("text/html");
+                PrintWriter out = response.getWriter();
+                out.println("<html><body>");
+                out.println("<h2>Registration failed</h2>");
+                out.println("</body></html>");
+            }
+
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // Close the resources
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+Step 3: Create HTML Form
+Create an HTML form to accept user registration details. Save this as registration.html in your web application directory.
+
+html
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Registration</title>
+</head>
+<body>
+    <form action="RegistrationServlet" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+        
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+        
+        <label for="country">Country:</label>
+        <input type="text" id="country" name="country" required><br>
+
+        <input type="submit" value="Register">
+    </form>
+</body>
+</html>
+Step 4: Configure Deployment Descriptor (web.xml)
+If you're using Servlet version 3.0 or later, you can skip this step, as the @WebServlet annotation is used for mapping. If not, you need to configure the servlet in web.xml.
+
+web.xml
+
+xml
+Copy code
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <servlet>
+        <servlet-name>RegistrationServlet</servlet-name>
+        <servlet-class>RegistrationServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>RegistrationServlet</servlet-name>
+        <url-pattern>/RegistrationServlet</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+Step 5: Deploy and Run
+----------------------------------------------------------------------------
+
+. Develop a JSP application to allow the user to modify the registration details
+after the valid authentication
+
+Register_1.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Guru Registration Form</title>
+</head>
+<body>
+<h1>Guru Register Form</h1>
+<form action="guru_register" method="post">
+			<table style="with: 50%">
+				<tr>
+					<td>First Name</td>
+					<td><input type="text" name="first_name" /></td>
+				</tr>
+				<tr>
+					<td>Last Name</td>
+					<td><input type="text" name="last_name" /></td>
+				</tr>
+				<tr>
+					<td>UserName</td>
+					<td><input type="text" name="username" /></td>
+				</tr>
+					<tr>
+					<td>Password</td>
+					<td><input type="password" name="password" /></td>
+				</tr>
+				<tr>
+					<td>Address</td>
+					<td><input type="text" name="address" /></td>
+				</tr>
+				<tr>
+					<td>Contact No</td>
+					<td><input type="text" name="contact" /></td>
+				</tr></table>
+			<input type="submit" value="Submit" /></form>
+</body>
+</html>
+
+Guru_register.java
+
+package demotest;
+
+import java.io.IOException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class guru_register
+ */
+public class guru_register extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    
+     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String first_name = request.getParameter("first_name");
+		String last_name = request.getParameter("last_name");
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+		String address = request.getParameter("address");
+		String contact = request.getParameter("contact");
+		
+		if(first_name.isEmpty() || last_name.isEmpty() || username.isEmpty() || 
+				password.isEmpty() || address.isEmpty() || contact.isEmpty())
+		{
+			RequestDispatcher req = request.getRequestDispatcher("register_1.jsp");
+			req.include(request, response);
+		}
+		else
+		{
+			RequestDispatcher req = request.getRequestDispatcher("register_2.jsp");
+			req.forward(request, response);
+		}
+	}
+
+}
+
+
+Register_2.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Guru Success Page</title>
+</head>
+<body>
+           <a><b>Welcome User!!!!</b></a>
+</body>
+</html>

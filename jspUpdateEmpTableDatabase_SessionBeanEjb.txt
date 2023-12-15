@@ -1,0 +1,215 @@
+Create an html page with fields, eno, name, age, desg, salary. Now on submit
+this data to a JSP page which will update the employee table of database with
+matching eno.
+
+-- Create the employee_db database
+CREATE DATABASE IF NOT EXISTS employee_db;
+
+-- Switch to the employee_db database
+USE employee_db;
+
+-- Create the employee table
+CREATE TABLE IF NOT EXISTS employee (
+    eno INT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    age INT NOT NULL,
+    desg VARCHAR(255) NOT NULL,
+    salary DOUBLE NOT NULL
+);
+
+-- Insert some sample data
+INSERT INTO employee (eno, name, age, desg, salary) VALUES (101, 'John Doe', 30, 'Manager', 50000.00);
+INSERT INTO employee (eno, name, age, desg, salary) VALUES (102, 'Jane Doe', 25, 'Developer', 40000.00);
+
+HTML Page (employeeForm.html):
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Form</title>
+</head>
+<body>
+    <h2>Employee Information Form</h2>
+    
+    <form action="UpdateEmployee.jsp" method="post">
+        Employee Number (eno): <input type="text" name="eno" required><br>
+        Name: <input type="text" name="name" required><br>
+        Age: <input type="text" name="age" required><br>
+        Designation (desg): <input type="text" name="desg" required><br>
+        Salary: <input type="text" name="salary" required><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
+JSP Page (UpdateEmployee.jsp):
+jsp
+Copy code
+<%@ page import="java.sql.*" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page isErrorPage="false" %>
+
+<%
+    // Retrieve employee information from the request parameters
+    String eno = request.getParameter("eno");
+    String name = request.getParameter("name");
+    String age = request.getParameter("age");
+    String desg = request.getParameter("desg");
+    String salary = request.getParameter("salary");
+
+    // Database connection parameters
+    String jdbcUrl = "jdbc:mysql://localhost:3306/your_database_name";
+    String jdbcUser = "your_username";
+    String jdbcPassword = "your_password";
+
+    try {
+        // Load the JDBC driver
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
+        // Establish a connection
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword)) {
+
+            // SQL query to update employee information
+            String sql = "UPDATE employee SET name=?, age=?, desg=?, salary=? WHERE eno=?";
+            
+            // Create a PreparedStatement
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                // Set values for placeholders in the SQL query
+                statement.setString(1, name);
+                statement.setString(2, age);
+                statement.setString(3, desg);
+                statement.setString(4, salary);
+                statement.setString(5, eno);
+
+                // Execute the query
+                int rowsAffected = statement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    out.println("<html><head><title>Update Successful</title></head><body>");
+                    out.println("<h2>Employee Information Updated Successfully!</h2>");
+                    out.println("<p>Updated Employee Number (eno): " + eno + "</p>");
+                    out.println("</body></html>");
+                } else {
+                    out.println("<html><head><title>Update Failed</title></head><body>");
+                    out.println("<h2>Failed to Update Employee Information.</h2>");
+                    out.println("<p>No matching employee with Employee Number (eno): " + eno + "</p>");
+                    out.println("</body></html>");
+                }
+            }
+        }
+    } catch (ClassNotFoundException | SQLException e) {
+        e.printStackTrace();
+        out.println("<html><head><title>Error</title></head><body>");
+        out.println("<h2>Error: " + e.getMessage() + "</h2>");
+        out.println("</body></html>");
+    }
+%>
+Make sure to replace "your_database_name", "your_username", and "your_password" with your actual MySQL database name, username, and password in the UpdateEmployee.jsp file.
+
+====================================================================
+
+Develop simple application to demonstrate accessing Session Bean using EJB.
+
+1. Stateful Session Bean (CalculatorBean.java):
+java
+Copy code
+import javax.ejb.Stateless;
+
+@Stateless
+public class CalculatorBean {
+
+    public int add(int num1, int num2) {
+        return num1 + num2;
+    }
+
+    public int subtract(int num1, int num2) {
+        return num1 - num2;
+    }
+}
+2. Servlet to Access Session Bean (CalculatorServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/CalculatorServlet")
+public class CalculatorServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    @EJB
+    private CalculatorBean calculatorBean;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Set response content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter to write the response
+        PrintWriter out = response.getWriter();
+
+        // Perform calculations using the CalculatorBean
+        int num1 = 10;
+        int num2 = 5;
+
+        int sum = calculatorBean.add(num1, num2);
+        int difference = calculatorBean.subtract(num1, num2);
+
+        // Display the results
+        out.println("<html><head><title>Calculator Result</title></head><body>");
+        out.println("<h2>Calculator Result</h2>");
+        out.println("<p>Sum: " + sum + "</p>");
+        out.println("<p>Difference: " + difference + "</p>");
+        out.println("</body></html>");
+    }
+}
+3. Deployment Descriptor (ejb-jar.xml):
+Create a file named ejb-jar.xml in the WEB-INF directory with the following content:
+
+xml
+Copy code
+<?xml version="1.0" encoding="UTF-8"?>
+<ejb-jar xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/ejb-jar_3_2.xsd"
+         version="3.2">
+
+    <enterprise-beans>
+        <session>
+            <ejb-name>CalculatorBean</ejb-name>
+            <ejb-class>your.package.name.CalculatorBean</ejb-class>
+            <session-type>Stateless</session-type>
+            <transaction-type>Container</transaction-type>
+        </session>
+    </enterprise-beans>
+
+</ejb-jar>
+Replace your.package.name with the actual package name where CalculatorBean is located.
+
+4. Index Page (index.html):
+Create an index.html file in the root directory of your web application with a link to access the CalculatorServlet.
+
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Demo</title>
+</head>
+<body>
+    <h2>Calculator Demo</h2>
+    <p><a href="CalculatorServlet">Access CalculatorServlet</a></p>
+</body>
+</html>
+Deployment:

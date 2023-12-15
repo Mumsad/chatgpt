@@ -1,0 +1,133 @@
+Develop a simple JSP application to pass values from one page to another with
+validations. (Name-txt, age-txt, hobbies-checkbox, email-txt, gender-radio
+button).
+
+1. input.jsp (First Page):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>User Input Form</title>
+</head>
+<body>
+
+    <h2>User Input Form</h2>
+
+    <form action="output.jsp" method="post">
+        Name: <input type="text" name="name" required><br>
+        Age: <input type="text" name="age" required pattern="[0-9]+"><br>
+
+        Hobbies:
+        <input type="checkbox" name="hobby" value="reading"> Reading
+        <input type="checkbox" name="hobby" value="gaming"> Gaming
+        <input type="checkbox" name="hobby" value="traveling"> Traveling
+        <br>
+
+        Email: <input type="text" name="email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"><br>
+
+        Gender:
+        <input type="radio" name="gender" value="male"> Male
+        <input type="radio" name="gender" value="female"> Female
+        <br>
+
+        <input type="submit" value="Submit">
+    </form>
+
+</body>
+</html>
+2. output.jsp (Second Page):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>User Details</title>
+</head>
+<body>
+
+    <h2>User Details</h2>
+
+    <%-- Retrieve values from the request --%>
+    <% String name = request.getParameter("name");
+       String age = request.getParameter("age");
+       String[] hobbies = request.getParameterValues("hobby");
+       String email = request.getParameter("email");
+       String gender = request.getParameter("gender");
+
+       // Perform basic validations --%>
+    <c:if test="${empty name or empty age or empty hobbies or empty email or empty gender}">
+        <p>Please fill in all fields.</p>
+        <p><a href="input.jsp">Go back to the input page</a></p>
+    </c:if>
+
+    <c:if test="${not empty name and not empty age and not empty hobbies and not empty email and not empty gender}">
+        <p>Name: ${name}</p>
+        <p>Age: ${age}</p>
+        <p>Hobbies: ${hobbies}</p>
+        <p>Email: ${email}</p>
+        <p>Gender: ${gender}</p>
+    </c:if>
+
+</body>
+</html>
+
+==================================================
+
+Develop servlet application of basic calculator. 
+
+HTML CODE: index.html
+<html>
+    <head>
+        <title>Calculator</title>
+    </head>
+    <body align="justify">
+<form action="Calculate" >
+ Enter First Number <input type="text" name="tn1" ><br>
+ Enter Second Number <input type="text" name="tn2" ><br>
+ Select an Operation<br>
+ <input type="radio" name="opr" value="+">ADDITION<br>
+ <input type="radio" name="opr" value="-">SUBTRACTION<br>
+ <input type="radio" name="opr" value="*">MULTIPLY<br>
+<input type="radio" name="opr" value="/">DIVIDE <br>
+<input type="reset"><br>
+<input type="submit" value="Calculate" >
+</form>
+    </body>
+</html>
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+SERVLET CODE:  Calculate.java
+
+package mypack;
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.*;
+public class Calculate extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            out.println("<html><head><title>Calculator</title></head><center><body>");
+            double n1 = Double.parseDouble(request.getParameter("tn1"));
+            double n2 = Double.parseDouble(request.getParameter("tn2"));
+            double result = 0;
+            String opr = request.getParameter("opr");
+            if(opr.equals("+"))
+                result = n1 + n2;
+            if(opr.equals("-"))
+                result = n1 - n2;
+            if(opr.equals("*"))
+                result = n1 * n2;
+            if(opr.equals("/"))
+                result = n1 / n2;
+            out.println("<h1 aligh=centerf> Answer "+result);
+            out.println("</center></body></html>");     
+        }
+    }}
+OUTPUT:

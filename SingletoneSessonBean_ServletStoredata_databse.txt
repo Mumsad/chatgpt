@@ -1,0 +1,179 @@
+Develop simple EJB application to demonstrate Servlet Hit count using
+Singleton Session Beans.
+
+Singleton Session Bean (HitCounterBean.java):
+java
+Copy code
+import javax.ejb.Singleton;
+
+@Singleton
+public class HitCounterBean {
+
+    private int hitCount;
+
+    public int incrementAndGetHitCount() {
+        return ++hitCount;
+    }
+
+    public int getHitCount() {
+        return hitCount;
+    }
+}
+Servlet (HitCounterServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.ejb.EJB;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/HitCounterServlet")
+public class HitCounterServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    @EJB
+    private HitCounterBean hitCounterBean;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws IOException {
+        
+        // Increment hit count using the Singleton Session Bean
+        int hitCount = hitCounterBean.incrementAndGetHitCount();
+
+        // Set response content type
+        response.setContentType("text/html");
+
+        // Print the hit count in the response
+        PrintWriter out = response.getWriter();
+        out.println("<html><head><title>Servlet Hit Counter</title></head><body>");
+        out.println("<h2>Servlet Hit Counter</h2>");
+        out.println("<p>This servlet has been hit " + hitCount + " times.</p>");
+        out.println("</body></html>");
+    }
+}
+Deployment:
+
+
+=======================
+Write a servlet code to store the biodata details of a user into the database.
+(Name, age, address, hobbies, gender, Qualification).
+
+-- Create the user_data database
+CREATE DATABASE IF NOT EXISTS user_data;
+
+-- Switch to the user_data database
+USE user_data;
+
+-- Create the biodata table
+CREATE TABLE IF NOT EXISTS biodata (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    age INT NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    hobbies VARCHAR(255) NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    qualification VARCHAR(255) NOT NULL
+);
+
+
+Database Configuration:
+Create a MySQL database named user_data and a table named biodata with columns id (auto-incremented), name, age, address, hobbies, gender, and qualification.
+
+Servlet (BiodataServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/BiodataServlet")
+public class BiodataServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        // Retrieve user details from the request parameters
+        String name = request.getParameter("name");
+        int age = Integer.parseInt(request.getParameter("age"));
+        String address = request.getParameter("address");
+        String hobbies = request.getParameter("hobbies");
+        String gender = request.getParameter("gender");
+        String qualification = request.getParameter("qualification");
+
+        // Database connection parameters
+        String jdbcUrl = "jdbc:mysql://localhost:3306/user_data";
+        String jdbcUser = "your_username";
+        String jdbcPassword = "your_password";
+
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Establish a connection
+            try (Connection connection = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword)) {
+
+                // SQL query to insert user data
+                String sql = "INSERT INTO biodata (name, age, address, hobbies, gender, qualification) VALUES (?, ?, ?, ?, ?, ?)";
+                
+                // Create a PreparedStatement
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    // Set values for placeholders in the SQL query
+                    statement.setString(1, name);
+                    statement.setInt(2, age);
+                    statement.setString(3, address);
+                    statement.setString(4, hobbies);
+                    statement.setString(5, gender);
+                    statement.setString(6, qualification);
+
+                    // Execute the query
+                    int rowsAffected = statement.executeUpdate();
+
+                    if (rowsAffected > 0) {
+                        response.getWriter().println("Biodata details stored successfully!");
+                    } else {
+                        response.getWriter().println("Failed to store biodata details.");
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            response.getWriter().println("Error: " + e.getMessage());
+        }
+    }
+}
+HTML Form (biodataForm.html):
+html
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Biodata Form</title>
+</head>
+<body>
+    <h2>Biodata Form</h2>
+    
+    <form action="BiodataServlet" method="post">
+        Name: <input type="text" name="name" required><br>
+        Age: <input type="number" name="age" required><br>
+        Address: <input type="text" name="address" required><br>
+        Hobbies: <input type="text" name="hobbies" required><br>
+        Gender: <input type="text" name="gender" required><br>
+        Qualification: <input type="text" name="qualification" required><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

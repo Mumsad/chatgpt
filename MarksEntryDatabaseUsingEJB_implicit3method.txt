@@ -1,0 +1,256 @@
+Develop simple Marks Entry Application to demonstrate accessing Database
+using EJB.
+
+/marks-entry-app
+|-- src
+|   `-- com
+|       `-- yourcompany
+|           `-- model
+|               `-- Student.java
+|           `-- ejb
+|               `-- MarksEntryBean.java
+|           `-- servlet
+|               `-- MarksEntryServlet.java
+|-- WebContent
+|   |-- META-INF
+|   |-- WEB-INF
+|       `-- web.xml
+|   |-- index.jsp
+|   |-- marksEntry.jsp
+
+Student Entity Class (Student.java):
+java
+Copy code
+package com.yourcompany.model;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import java.io.Serializable;
+
+@Entity
+public class Student implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private int marks;
+
+    // Constructors, getters, and setters
+}
+EJB (MarksEntryBean.java):
+java
+Copy code
+package com.yourcompany.ejb;
+
+import com.yourcompany.model.Student;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.util.List;
+
+@Stateless
+public class MarksEntryBean {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public void addStudent(Student student) {
+        entityManager.persist(student);
+    }
+
+    public List<Student> getAllStudents() {
+        return entityManager.createQuery("SELECT s FROM Student s", Student.class).getResultList();
+    }
+}
+Servlet (MarksEntryServlet.java):
+java
+Copy code
+package com.yourcompany.servlet;
+
+import com.yourcompany.ejb.MarksEntryBean;
+import com.yourcompany.model.Student;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+
+@WebServlet("/marksEntry")
+public class MarksEntryServlet extends HttpServlet {
+
+    @EJB
+    private MarksEntryBean marksEntryBean;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<Student> students = marksEntryBean.getAllStudents();
+        request.setAttribute("students", students);
+        request.getRequestDispatcher("marksEntry.jsp").forward(request, response);
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String name = request.getParameter("name");
+        int marks = Integer.parseInt(request.getParameter("marks"));
+
+        Student student = new Student();
+        student.setName(name);
+        student.setMarks(marks);
+
+        marksEntryBean.addStudent(student);
+
+        // Redirect to display all students
+        response.sendRedirect(request.getContextPath() + "/marksEntry");
+    }
+}
+JSP (marksEntry.jsp):
+jsp
+Copy code
+<%@ page import="java.util.List" %>
+<%@ page import="com.yourcompany.model.Student" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Marks Entry</title>
+</head>
+<body>
+    <h2>Marks Entry</h2>
+
+    <form action="marksEntry" method="post">
+        <label for="name">Student Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="marks">Marks:</label>
+        <input type="number" id="marks" name="marks" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <hr>
+
+    <h3>All Students:</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Marks</th>
+            </tr>
+        </thead>
+        <tbody>
+            <%
+                List<Student> students = (List<Student>) request.getAttribute("students");
+                for (Student student : students) {
+            %>
+            <tr>
+                <td><%= student.getId() %></td>
+                <td><%= student.getName() %></td>
+                <td><%= student.getMarks() %></td>
+            </tr>
+            <%
+                }
+            %>
+        </tbody>
+    </table>
+</body>
+</html>
+web.xml Configuration:
+Create a web.xml file inside the WEB-INF folder.
+
+xml
+Copy code
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+    <servlet>
+        <servlet-name>MarksEntryServlet</servlet-name>
+        <servlet-class>com.yourcompany.servlet.MarksEntryServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>MarksEntryServlet</servlet-name>
+        <url-pattern>/marksEntry</url-pattern>
+    </servlet-mapping>
+
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+</web-app>
+
+
+================================================================================
+
+Write a simple JSP application to demonstrate the use of implicit object (at least
+3 methods of 4 objects).
+
+
+ImplicitObjectsDemo.jsp:
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Implicit Objects Demo</title>
+</head>
+<body>
+
+<h2>Implicit Objects Demo</h2>
+
+<%
+    // Implicit object 1: request
+    String username = (String) request.getAttribute("username");
+
+    // Implicit object 2: session
+    String sessionId = session.getId();
+
+    // Implicit object 3: application
+    int totalUsers = (int) application.getAttribute("totalUsers");
+%>
+
+<p>Welcome, <%= (username != null) ? username : "Guest" %>!</p>
+<p>Your session ID is <%= sessionId %>.</p>
+<p>Total Users in the Application: <%= totalUsers %></p>
+
+<%
+    // Implicit object 4: out (PrintWriter)
+    out.println("<p>This message is printed using the 'out' implicit object.</p>");
+%>
+
+</body>
+</html>
+DemoServlet.java:
+java
+Copy code
+@WebServlet("/DemoServlet")
+public class DemoServlet extends HttpServlet {
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Set username attribute in request
+        request.setAttribute("username", "JohnDoe");
+
+        // Increment totalUsers attribute in application
+        ServletContext application = getServletContext();
+        Integer totalUsers = (Integer) application.getAttribute("totalUsers");
+        if (totalUsers == null) {
+            totalUsers = 1;
+        } else {
+            totalUsers++;
+        }
+        application.setAttribute("totalUsers", totalUsers);
+
+        // Forward to the JSP
+        RequestDispatcher dispatcher = request.getRequestDispatcher("ImplicitObjectsDemo.jsp");
+        dispatcher.forward(request, response);
+    }
+}

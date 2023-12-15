@@ -1,0 +1,137 @@
+ Write a JSP that takes login details from the user and forward the request to
+‘login.jsp’ for ‘Successful login’ message if username and password is equal to
+admin otherwise display an error message ‘Access Denied’
+
+Login Form (index.html):
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login</title>
+</head>
+<body>
+
+    <h2>User Login</h2>
+
+    <form action="Login.jsp" method="post">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" value="Login">
+    </form>
+
+</body>
+</html>
+Login JSP (Login.jsp):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Result</title>
+</head>
+<body>
+
+    <%-- Retrieve user input --%>
+    <% String username = request.getParameter("username");
+       String password = request.getParameter("password");
+
+       // Check if the login is successful --%>
+    <c:if test="${'admin'.equals(username) && 'admin'.equals(password)}">
+        <h2>Successful Login</h2>
+        <p>Welcome, ${username}!</p>
+    </c:if>
+
+    <c:if test="${!('admin'.equals(username) && 'admin'.equals(password))}">
+        <h2>Access Denied</h2>
+        <p>Error: Invalid username or password.</p>
+    </c:if>
+
+</body>
+</html>
+Deployment:
+===============================
+Write EJB that calculates simple interest and compound interest for principal,
+number of years and rate of interest
+
+EJB Module (JAR File):
+1. EJB Interface (InterestCalculator.java):
+java
+Copy code
+import javax.ejb.Remote;
+
+@Remote
+public interface InterestCalculator {
+    double calculateSimpleInterest(double principal, int years, double rate);
+
+    double calculateCompoundInterest(double principal, int years, double rate);
+}
+2. EJB Implementation Class (InterestCalculatorBean.java):
+java
+Copy code
+import javax.ejb.Stateless;
+
+@Stateless
+public class InterestCalculatorBean implements InterestCalculator {
+    @Override
+    public double calculateSimpleInterest(double principal, int years, double rate) {
+        return (principal * rate * years) / 100.0;
+    }
+
+    @Override
+    public double calculateCompoundInterest(double principal, int years, double rate) {
+        double amount = principal * Math.pow(1 + rate / 100, years);
+        return amount - principal;
+    }
+}
+Web Application Module:
+3. Servlet (InterestCalculatorClientServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/InterestCalculatorClientServlet")
+public class InterestCalculatorClientServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    @EJB
+    private InterestCalculator interestCalculator;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Retrieve parameters from the request
+        double principal = Double.parseDouble(request.getParameter("principal"));
+        int years = Integer.parseInt(request.getParameter("years"));
+        double rate = Double.parseDouble(request.getParameter("rate"));
+
+        // Calculate simple interest and compound interest using the EJB
+        double simpleInterest = interestCalculator.calculateSimpleInterest(principal, years, rate);
+        double compoundInterest = interestCalculator.calculateCompoundInterest(principal, years, rate);
+
+        // Display the results
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        out.println("<html><head><title>Interest Calculator</title></head><body>");
+        out.println("<h2>Interest Calculation Results</h2>");
+        out.println("<p>Principal: " + principal + "</p>");
+        out.println("<p>Number of Years: " + years + "</p>");
+        out.println("<p>Rate of Interest: " + rate + "</p>");
+        out.println("<p>Simple Interest: " + simpleInterest + "</p>");
+        out.println("<p>Compound Interest: " + compoundInterest + "</p>");
+        out.println("</body></html>");
+    }
+}
+Deployment:
+Package the EJB (

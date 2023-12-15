@@ -1,0 +1,312 @@
+Create a registration and login JSP application to register and authenticate the
+user based on username and password using JDBC.
+
+
+1. Database Setup:
+Create a MySQL database named user_db and a table named user with columns id, username, and password.
+
+sql
+Copy code
+CREATE DATABASE IF NOT EXISTS user_db;
+USE user_db;
+
+CREATE TABLE IF NOT EXISTS user (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(50) NOT NULL
+);
+
+INSERT INTO user (username, password) VALUES ('user1', 'password1');
+INSERT INTO user (username, password) VALUES ('user2', 'password2');
+2. Registration Form (register.jsp):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration</title>
+</head>
+<body>
+
+    <h2>User Registration</h2>
+
+    <form action="RegisterServlet" method="post">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" value="Register">
+    </form>
+
+</body>
+</html>
+3. Registration Servlet (RegisterServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/RegisterServlet")
+public class RegisterServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Retrieve user input
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        // Database connection parameters
+        String jdbcUrl = "jdbc:mysql://localhost:3306/user_db";
+        String jdbcUser = "your_username";
+        String jdbcPassword = "your_password";
+
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Establish a connection
+            try (Connection connection = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword)) {
+
+                // SQL query to insert user into the database
+                String sql = "INSERT INTO user (username, password) VALUES (?, ?)";
+                
+                // Create a PreparedStatement
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setString(1, username);
+                    statement.setString(2, password);
+
+                    // Execute the query
+                    int rowsAffected = statement.executeUpdate();
+
+                    if (rowsAffected > 0) {
+                        response.sendRedirect("login.jsp");
+                    } else {
+                        response.setContentType("text/html");
+                        PrintWriter out = response.getWriter();
+                        out.println("<html><head><title>Registration Failed</title></head><body>");
+                        out.println("<h2>Registration failed. Please try again.</h2>");
+                        out.println("</body></html>");
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<html><head><title>Error</title></head><body>");
+            out.println("<h2>Error: " + e.getMessage() + "</h2>");
+            out.println("</body></html>");
+        }
+    }
+}
+4. Login Form (login.jsp):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>User Login</title>
+</head>
+<body>
+
+    <h2>User Login</h2>
+
+    <form action="LoginServlet" method="post">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" value="Login">
+    </form>
+
+</body>
+</html>
+5. Login Servlet (LoginServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+@WebServlet("/LoginServlet")
+public class LoginServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Retrieve user input
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        // Database connection parameters
+        String jdbcUrl = "jdbc:mysql://localhost:3306/user_db";
+        String jdbcUser = "your_username";
+        String jdbcPassword = "your_password";
+
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Establish a connection
+            try (Connection connection = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword)) {
+
+                // SQL query to check user credentials
+                String sql = "SELECT * FROM user WHERE username = ? AND password = ?";
+
+                // Create a PreparedStatement
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setString(1, username);
+                    statement.setString(2, password);
+
+                    // Execute the query
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) {
+                            // Valid credentials, create a session
+                            HttpSession session = request.getSession();
+                            session.setAttribute("username", username);
+
+                            response.sendRedirect("welcome.jsp");
+                        } else {
+                            response.setContentType("text/html");
+                            PrintWriter out = response.getWriter();
+                            out.println("<html><head><title>Login Failed</title></head><body>");
+                            out.println("<h2>Login failed. Invalid username or password.</h2>");
+                            out.println("</body></html>");
+                        }
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<html><head><title>Error</title></head><body>");
+            out.println("<h2>Error: " + e.getMessage() + "</h2>");
+            out.println("</body></html>");
+        }
+    }
+}
+6. Welcome Page (welcome.jsp):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+</head>
+<body>
+
+    <h2>Welcome, <%= session.getAttribute("username") %>!</h2>
+    <p>You are now logged in.</p>
+
+</body>
+</html>
+In this example:
+
+register.jsp is the registration form.
+RegisterServlet.java handles the registration process.
+login.jsp is the login form.
+LoginServlet.java handles the login process.
+welcome.jsp is a simple welcome page that displays the logged-in user's username.
+==================================================
+
+Develop servlet application for accepting user registration details and displaying
+it on another page (At least 6 Values).
+
+1. Registration Form (register.html):
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration</title>
+</head>
+<body>
+
+    <h2>User Registration</h2>
+
+    <form action="RegistrationServlet" method="post">
+        First Name: <input type="text" name="firstName" required><br>
+        Last Name: <input type="text" name="lastName" required><br>
+        Email: <input type="email" name="email" required><br>
+        Age: <input type="number" name="age" required><br>
+        Country: <input type="text" name="country" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" value="Register">
+    </form>
+
+</body>
+</html>
+2. Registration Servlet (RegistrationServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/RegistrationServlet")
+public class RegistrationServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Retrieve user input
+        String firstName = request.getParameter("firstName");
+        String lastName = request.getParameter("lastName");
+        String email = request.getParameter("email");
+        int age = Integer.parseInt(request.getParameter("age"));
+        String country = request.getParameter("country");
+        String password = request.getParameter("password");
+
+        // Set the content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter
+        PrintWriter out = response.getWriter();
+
+        // Display the registered user details
+        out.println("<html><head><title>User Registration Details</title></head><body>");
+        out.println("<h2>User Registration Details</h2>");
+        out.println("<p>First Name: " + firstName + "</p>");
+        out.println("<p>Last Name: " + lastName + "</p>");
+        out.println("<p>Email: " + email + "</p>");
+        out.println("<p>Age: " + age + "</p>");
+        out.println("<p>Country: " + country + "</p>");
+        out.println("<p>Password: " + password + "</p>");
+        out.println("</body></html>");
+    }
+}
+Deployment:

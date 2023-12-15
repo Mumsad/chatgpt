@@ -1,0 +1,139 @@
+Developing a hibernate application to store feedback of website visitor
+
+Step 1: Set up Project Dependencies
+Add the necessary dependencies to your project. You can use a build tool like Maven or Gradle. For Maven, add the following dependencies to your pom.xml file:
+
+xml
+Copy code
+<dependencies>
+    <!-- Hibernate dependencies -->
+    <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>5.5.7.Final</version>
+    </dependency>
+    <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-entitymanager</artifactId>
+        <version>5.5.7.Final</version>
+    </dependency>
+    <!-- Database driver (e.g., H2) -->
+    <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>1.4.200</version>
+    </dependency>
+</dependencies>
+Step 2: Create Hibernate Configuration
+Create a hibernate.cfg.xml file in the src folder. This file contains Hibernate configuration settings, such as database connection details.
+
+xml
+Copy code
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="hibernate.connection.driver_class">org.h2.Driver</property>
+        <property name="hibernate.connection.url">jdbc:h2:mem:test;DB_CLOSE_DELAY=-1</property>
+        <property name="hibernate.connection.username">sa</property>
+        <property name="hibernate.connection.password"></property>
+        
+        <!-- JDBC connection pool settings -->
+        <property name="hibernate.c3p0.min_size">5</property>
+        <property name="hibernate.c3p0.max_size">20</property>
+        <property name="hibernate.c3p0.timeout">300</property>
+        <property name="hibernate.c3p0.max_statements">50</property>
+        <property name="hibernate.c3p0.idle_test_period">3000</property>
+        
+        <!-- Specify dialect -->
+        <property name="hibernate.dialect">org.hibernate.dialect.H2Dialect</property>
+        
+        <!-- Echo all executed SQL to stdout -->
+        <property name="hibernate.show_sql">true</property>
+        
+        <!-- Drop and re-create the database schema on startup -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        
+        <!-- Mention annotated class -->
+        <mapping class="com.example.Feedback"/>
+    </session-factory>
+</hibernate-configuration>
+Step 3: Create Feedback Entity
+Create a Java class for the Feedback entity in the src folder:
+
+java
+Copy code
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Feedback {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String name;
+    private String email;
+    private String message;
+    
+    // getters and setters
+}
+Step 4: Create FeedbackDAO
+Create a DAO class to interact with the database:
+
+java
+Copy code
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+
+public class FeedbackDAO {
+
+    private SessionFactory sessionFactory;
+
+    public FeedbackDAO() {
+        sessionFactory = new Configuration().configure("hibernate.cfg.xml").buildSessionFactory();
+    }
+
+    public void saveFeedback(Feedback feedback) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            session.save(feedback);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+    }
+}
+Step 5: Use FeedbackDAO in your application
+In your main application or servlet, you can use the FeedbackDAO to save feedback:
+
+java
+Copy code
+public class MainApp {
+    public static void main(String[] args) {
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
+
+        // Create a feedback instance
+        Feedback feedback = new Feedback();
+        feedback.setName("John Doe");
+        feedback.setEmail("john@example.com");
+        feedback.setMessage("Great website!");
+
+        // Save feedback to the database
+        feedbackDAO.saveFeedback(feedback);
+    }
+}

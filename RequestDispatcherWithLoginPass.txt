@@ -1,0 +1,130 @@
+Use RequestDispatcher in the following example.
+Design a form to accept username and password from user. If password is equal
+to ‘admin’ then the control should go to Welcome Servlet which displays ‘Hello’
+with the username entered. If password is not equal to ‘admin’ then control
+should go to Error Servlet which displays ‘Error in Login’
+
+Certainly! In this example, we'll use RequestDispatcher to forward the request to different servlets based on the entered password. Here's how you can achieve this:
+
+1. Login Form (login.html):
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login</title>
+</head>
+<body>
+
+    <h2>User Login</h2>
+
+    <form action="LoginControllerServlet" method="post">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" value="Login">
+    </form>
+
+</body>
+</html>
+2. Login Controller Servlet (LoginControllerServlet.java):
+java
+Copy code
+import java.io.IOException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/LoginControllerServlet")
+public class LoginControllerServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Retrieve user input
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        if ("admin".equals(password)) {
+            // Forward to WelcomeServlet
+            request.setAttribute("username", username);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("WelcomeServlet");
+            dispatcher.forward(request, response);
+        } else {
+            // Forward to ErrorServlet
+            RequestDispatcher dispatcher = request.getRequestDispatcher("ErrorServlet");
+            dispatcher.forward(request, response);
+        }
+    }
+}
+3. Welcome Servlet (WelcomeServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/WelcomeServlet")
+public class WelcomeServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Retrieve username from the request
+        String username = (String) request.getAttribute("username");
+
+        // Set the content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter
+        PrintWriter out = response.getWriter();
+
+        // Display the welcome message
+        out.println("<html><head><title>Welcome</title></head><body>");
+        out.println("<h2>Hello, " + username + "!</h2>");
+        out.println("</body></html>");
+    }
+}
+4. Error Servlet (ErrorServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ErrorServlet")
+public class ErrorServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Set the content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter
+        PrintWriter out = response.getWriter();
+
+        // Display the error message
+        out.println("<html><head><title>Error</title></head><body>");
+        out.println("<h2>Error in Login</h2>");
+        out.println("</body></html>");
+    }
+}
+Deployment:

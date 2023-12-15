@@ -1,0 +1,137 @@
+Develop a JSP application to demonstrate use of JSP Action Tags
+
+
+index.jsp:
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>JSP Action Tags Demo</title>
+</head>
+<body>
+
+    <h2>JSP Action Tags Demo</h2>
+
+    <%-- Set a variable using <c:set> --%>
+    <c:set var="message" value="Hello from JSP!"/>
+
+    <%-- Include another JSP page using <jsp:include> --%>
+    <jsp:include page="includedPage.jsp"/>
+
+    <%-- Use <c:if> to conditionally display content --%>
+    <c:if test="${empty param.showMessage}">
+        <p>This message is hidden by default. <a href="?showMessage=true">Show Message</a></p>
+    </c:if>
+
+</body>
+</html>
+includedPage.jsp:
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<body>
+
+    <%-- Display the variable set in the parent page --%>
+    <p>${message}</p>
+
+    <%-- Use <c:forEach> to iterate over a collection --%>
+    <c:forEach var="number" begin="1" end="5">
+        <p>Iteration ${number}</p>
+    </c:forEach>
+
+</body>
+</html>
+In this example:
+
+========================
+
+Develop a Servlet application to demonstrate simple validations.
+
+
+1. HTML Form (index.html):
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Form Validation</title>
+</head>
+<body>
+
+    <h2>User Registration</h2>
+
+    <form action="ValidationServlet" method="post">
+        Name: <input type="text" name="name" required><br>
+        Age: <input type="text" name="age" required pattern="[0-9]+"><br>
+        Email: <input type="text" name="email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"><br>
+        <input type="submit" value="Submit">
+    </form>
+
+</body>
+</html>
+2. Servlet (ValidationServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ValidationServlet")
+public class ValidationServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Retrieve parameters from the request
+        String name = request.getParameter("name");
+        String ageStr = request.getParameter("age");
+        String email = request.getParameter("email");
+
+        // Validate age as a positive integer
+        int age = -1;
+        try {
+            age = Integer.parseInt(ageStr);
+        } catch (NumberFormatException e) {
+            // Handle the case where age is not a valid integer
+        }
+
+        // Set the content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter
+        PrintWriter out = response.getWriter();
+
+        // Perform basic validations
+        if (name.isEmpty() || age < 0 || email.isEmpty()) {
+            // Display error message if validations fail
+            out.println("<html><head><title>Validation Error</title></head><body>");
+            out.println("<h2>Error: Please fill in all fields correctly.</h2>");
+            out.println("<p><a href='index.html'>Go back to the form</a></p>");
+            out.println("</body></html>");
+        } else {
+            // Display success message if validations pass
+            out.println("<html><head><title>Registration Successful</title></head><body>");
+            out.println("<h2>Registration Successful</h2>");
+            out.println("<p>Name: " + name + "</p>");
+            out.println("<p>Age: " + age + "</p>");
+            out.println("<p>Email: " + email + "</p>");
+            out.println("</body></html>");
+        }
+    }
+}
+Deployment:
+Save the index.html file in your web application directory (e.g., WebContent).
+Save the ValidationServlet.java file in the src directory of your Java web application.

@@ -1,0 +1,198 @@
+Create a servlet that uses Cookies to store the number of times a user has visited
+servlet.
+
+Certainly! Below is an example of a servlet that uses cookies to store and display the number of times a user has visited the servlet.
+
+Servlet (VisitCounterServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/VisitCounterServlet")
+public class VisitCounterServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        // Get the array of cookies associated with this request
+        Cookie[] cookies = request.getCookies();
+
+        // Check if the "visitCount" cookie exists
+        int visitCount = 1;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("visitCount".equals(cookie.getName())) {
+                    visitCount = Integer.parseInt(cookie.getValue());
+                    visitCount++; // Increment the visit count
+                    cookie.setValue(Integer.toString(visitCount));
+                    response.addCookie(cookie);
+                    break;
+                }
+            }
+        }
+
+        // If the "visitCount" cookie does not exist, create and set it
+        if (visitCount == 1) {
+            Cookie visitCountCookie = new Cookie("visitCount", "1");
+            response.addCookie(visitCountCookie);
+        }
+
+        // Set response content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter to write the response
+        PrintWriter out = response.getWriter();
+
+        // Display the visit count
+        out.println("<html><head><title>Visit Counter</title></head><body>");
+        out.println("<h2>Visit Counter</h2>");
+        out.println("<p>You have visited this servlet " + visitCount + " times.</p>");
+        out.println("</body></html>");
+    }
+}
+In this example, the servlet checks for the existence of a cookie named "visitCount." If the cookie exists, it retrieves the current visit count, increments it, updates the cookie, and sends it back to the client. If the cookie doesn't exist, it creates a new cookie and sets the visit count to 1.
+
+Deployment:
+Deploy your servle
+
+===========================
+Develop a JSP application to allow the user to modify the registration details
+after the valid authentication.
+
+HTML Form (login.jsp):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login Page</title>
+</head>
+<body>
+    <h2>Login Page</h2>
+
+    <%-- Display error message if authentication fails --%>
+    <%
+        String errorMessage = (String)request.getAttribute("errorMessage");
+        if (errorMessage != null) {
+    %>
+            <p style="color: red;"><%= errorMessage %></p>
+    <%
+        }
+    %>
+
+    <form action="ProfileServlet" method="post">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>
+Servlet (ProfileServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ProfileServlet")
+public class ProfileServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Retrieve user credentials from the request parameters
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        // Validate user credentials (replace with your actual authentication logic)
+        if ("user".equals(username) && "password".equals(password)) {
+            // Authentication successful, redirect to profile page
+            response.sendRedirect("profile.jsp");
+        } else {
+            // Authentication failed, display error message on login page
+            request.setAttribute("errorMessage", "Invalid username or password");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+        }
+    }
+}
+HTML Form for Profile Modification (profile.jsp):
+jsp
+Copy code
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Profile Page</title>
+</head>
+<body>
+    <h2>Profile Page</h2>
+
+    <%-- Display user details and form for modification --%>
+    <p>Welcome, <%= request.getParameter("username") %>!</p>
+    <form action="UpdateProfileServlet" method="post">
+        New Password: <input type="password" name="newPassword" required><br>
+        Confirm Password: <input type="password" name="confirmPassword" required><br>
+        <input type="submit" value="Update Profile">
+    </form>
+</body>
+</html>
+Servlet for Profile Modification (UpdateProfileServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/UpdateProfileServlet")
+public class UpdateProfileServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+
+        // Retrieve user credentials from the request parameters
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        // Validate and update the profile details (replace with your logic)
+        if (newPassword.equals(confirmPassword)) {
+            // Passwords match, update the profile (replace with your update logic)
+            // For demonstration, simply print a success message
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<html><head><title>Profile Update Successful</title></head><body>");
+            out.println("<h2>Profile Update Successful!</h2>");
+            out.println("</body></html>");
+        } else {
+            // Passwords don't match, display an error message
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<html><head><title>Error</title></head><body>");
+            out.println("<h2>Passwords do not match. Profile update failed.</h2>");
+            out.println("</body></html>");
+        }
+    }
+}

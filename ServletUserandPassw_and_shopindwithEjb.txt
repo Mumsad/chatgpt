@@ -1,0 +1,192 @@
+Write a Java Program using Servlet to authenticate user’s username and
+password
+
+Servlet (LoginServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/LoginServlet")
+public class LoginServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        // Retrieve user credentials from the request parameters
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        // Validate user credentials (You should replace this with your actual authentication logic)
+        boolean isAuthenticated = authenticateUser(username, password);
+
+        // Set response content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter to write the response
+        PrintWriter out = response.getWriter();
+
+        // Display authentication result
+        out.println("<html><head><title>Login Result</title></head><body>");
+
+        if (isAuthenticated) {
+            out.println("<h2>Login Successful!</h2>");
+        } else {
+            out.println("<h2>Login Failed. Invalid username or password.</h2>");
+        }
+
+        out.println("</body></html>");
+    }
+
+    private boolean authenticateUser(String username, String password) {
+        // This is a simple example; you should replace it with your actual authentication logic
+        // For simplicity, let's say valid username is "user" and valid password is "password"
+        return "user".equals(username) && "password".equals(password);
+    }
+}
+HTML Form (loginForm.html):
+html
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login Form</title>
+</head>
+<body>
+    <h2>Login Form</h2>
+    
+    <form action="LoginServlet" method="post">
+        Username: <input type="text" name="username" required><br>
+        Password: <input type="password" name="password" required><br>
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>
+
+=====================================
+
+Develop simple shopping cart application using EJB [Stateful Session Bean].
+
+Stateful Session Bean (ShoppingCartBean.java):
+java
+Copy code
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.Stateful;
+
+@Stateful
+public class ShoppingCartBean {
+
+    private List<String> items = new ArrayList<>();
+
+    public void addItem(String item) {
+        items.add(item);
+    }
+
+    public List<String> getItems() {
+        return items;
+    }
+
+    public void clearCart() {
+        items.clear();
+    }
+}
+Servlet (ShoppingCartServlet.java):
+java
+Copy code
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/ShoppingCartServlet")
+public class ShoppingCartServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    @EJB
+    private ShoppingCartBean shoppingCart;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        // Retrieve user action and item from the request parameters
+        String action = request.getParameter("action");
+        String item = request.getParameter("item");
+
+        // Perform actions based on user input
+        if ("add".equals(action)) {
+            shoppingCart.addItem(item);
+        } else if ("clear".equals(action)) {
+            shoppingCart.clearCart();
+        }
+
+        // Display the shopping cart contents
+        List<String> cartItems = shoppingCart.getItems();
+
+        // Set response content type
+        response.setContentType("text/html");
+
+        // Create a PrintWriter to write the response
+        PrintWriter out = response.getWriter();
+
+        // Display shopping cart contents
+        out.println("<html><head><title>Shopping Cart</title></head><body>");
+        out.println("<h2>Shopping Cart</h2>");
+
+        if (cartItems.isEmpty()) {
+            out.println("<p>Your cart is empty.</p>");
+        } else {
+            out.println("<ul>");
+            for (String cartItem : cartItems) {
+                out.println("<li>" + cartItem + "</li>");
+            }
+            out.println("</ul>");
+        }
+
+        // Display form to add items or clear the cart
+        out.println("<form action=\"ShoppingCartServlet\" method=\"post\">");
+        out.println("Add Item: <input type=\"text\" name=\"item\" required>");
+        out.println("<input type=\"hidden\" name=\"action\" value=\"add\">");
+        out.println("<input type=\"submit\" value=\"Add to Cart\"><br>");
+        out.println("<input type=\"hidden\" name=\"action\" value=\"clear\">");
+        out.println("<input type=\"submit\" value=\"Clear Cart\">");
+        out.println("</form>");
+
+        out.println("</body></html>");
+    }
+}
+Deployment Descriptor (ejb-jar.xml):
+xml
+Copy code
+<?xml version="1.0" encoding="UTF-8"?>
+<ejb-jar xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/ejb-jar_3_2.xsd"
+         version="3.2">
+
+    <enterprise-beans>
+        <session>
+            <ejb-name>ShoppingCartBean</ejb-name>
+            <ejb-class>your.package.name.ShoppingCartBean</ejb-class>
+            <session-type>Stateful</session-type>
+            <transaction-type>Container</transaction-type>
+        </session>
+    </enterprise-beans>
+
+</ejb-jar>
+Replace your.package.name with the actual package name where ShoppingCartBean is located.
